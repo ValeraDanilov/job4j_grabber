@@ -4,43 +4,45 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.job4j.grabber.Parse;
 import ru.job4j.grabber.Post;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SqlRuParse {
+public class SqlRuParse implements Parse {
 
-    private static int index = 1, count;
+    private SqlRuDateTimeParser data = new SqlRuDateTimeParser();
+    private static int index = 1;
 
     public static void main(String[] args) throws IOException {
-        new SqlRuParse().fillInPost();
-    }
-
-    public void outAllJob() throws IOException {
-        while (count <= 5) {
-            Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers" + "/" + count).get();
-            Elements row = doc.select(".postslisttopic");
-            Elements value = doc.select(".altCol");
-            for (Element el : row) {
-                Element href = el.child(0);
-                System.out.println(href.attr("href"));
-                System.out.println(href.text());
-                System.out.println(value.get(index).text());
-                index += 2;
-            }
-            count++;
-            index = 1;
+        for (var el : new SqlRuParse().list("https://www.sql.ru/forum/job-offers")) {
+            System.out.println(el);
         }
+        System.out.println(new SqlRuParse().detail("https://www.sql.ru/forum/1325330/lidy-be-fe-senior-cistemnye-analitiki-qa-i-devops-moskva-do-200t"));
     }
 
-    public void fillInPost() throws IOException {
-        Document doc = Jsoup.connect("https://www.sql.ru/forum/1325330/lidy-be-fe-senior-cistemnye-analitiki-qa-i-devops-moskva-do-200t").get();
+    @Override
+    public List<Post> list(String link) throws IOException {
+        List<Post> posts = new ArrayList<>();
+        Document doc = Jsoup.connect(link).get();
+        Elements row = doc.select(".postslisttopic");
+        Elements value = doc.select(".altCol");
+        for (var el : row) {
+            Element href = el.child(0);
+            String text = detail(href.attr("href")).getText();
+            posts.add(new Post(href.text(), text, href.attr("href"), this.data.parse(value.get(index).text())));
+            index += 2;
+        }
+        return posts;
+    }
+
+    @Override
+    public Post detail(String link) throws IOException {
+        Document doc = Jsoup.connect(link).get();
         Elements row = doc.select(".msgBody");
         Elements row1 = doc.select(".msgFooter");
-        Post post = new Post();
-        post.setText(row.get(1).text());
-        post.setCreated(row1.get(0).text().split("\\[")[0]);
-        System.out.println(post.getText());
-        System.out.println(post.getCreated());
+        return new Post(row.get(1).text(), this.data.parse(row1.get(0).text().split("\\[")[0]));
     }
 }
