@@ -20,7 +20,6 @@ public class SqlRuParse implements Parse {
         for (var el : new SqlRuParse().list("https://www.sql.ru/forum/job-offers")) {
             System.out.println(el);
         }
-        System.out.println(new SqlRuParse().detail("https://www.sql.ru/forum/1325330/lidy-be-fe-senior-cistemnye-analitiki-qa-i-devops-moskva-do-200t"));
     }
 
     @Override
