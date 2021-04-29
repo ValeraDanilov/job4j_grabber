@@ -14,16 +14,10 @@ import java.util.List;
 public class SqlRuParse implements Parse {
 
     private SqlRuDateTimeParser data = new SqlRuDateTimeParser();
-    private static int index = 1;
-
-    public static void main(String[] args) throws IOException {
-        for (var el : new SqlRuParse().list("https://www.sql.ru/forum/job-offers")) {
-            System.out.println(el);
-        }
-    }
 
     @Override
     public List<Post> list(String link) throws IOException {
+        int index = 1;
         List<Post> posts = new ArrayList<>();
         Document doc = Jsoup.connect(link).get();
         Elements row = doc.select(".postslisttopic");

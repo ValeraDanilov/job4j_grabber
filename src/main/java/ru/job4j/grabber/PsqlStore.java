@@ -15,9 +15,6 @@ public class PsqlStore implements Store, AutoCloseable {
 
     public PsqlStore(Properties cfg) {
         try {
-            try (var io = PsqlStore.class.getClassLoader().getResourceAsStream("app.properties")) {
-                cfg.load(io);
-            }
             Class.forName(cfg.getProperty("jdbc.driver"));
             this.cnn = DriverManager.getConnection(cfg.getProperty("jdbc.url"), cfg.getProperty("jdbc.userName"), cfg.getProperty("jdbc.userPassword"));
         } catch (Exception e) {
@@ -28,7 +25,7 @@ public class PsqlStore implements Store, AutoCloseable {
 
     @Override
     public void save(Post post) {
-        try (PreparedStatement pr = this.cnn.prepareStatement("insert into post(name, text, link, created) values (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement pr = this.cnn.prepareStatement("insert into post(name, text, link, created) values (?, ?, ?, ?) on conflict do nothing", Statement.RETURN_GENERATED_KEYS)) {
             pr.setString(1, post.getName());
             pr.setString(2, post.getText());
             pr.setString(3, post.getLink());
@@ -98,6 +95,5 @@ public class PsqlStore implements Store, AutoCloseable {
         SqlRuParse parse = new SqlRuParse();
         parse.list("https://www.sql.ru/forum/job-offers").forEach(ps::save);
         ps.getAll().forEach(System.out::println);
-        System.out.println(ps.findById("160"));
     }
 }
